@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-system-bg: #000000;
+  --color-system-fg: #ffffff;
+  --color-system-accent: #3b82f6;
+  --color-system-error: #ef4444;
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+@layer base {
+  body {
+    @apply bg-system-bg text-system-fg font-sans antialiased;
+  }
+}
+
+@utility brutal-border {
+  @apply border-2 border-system-fg rounded-none;
+}
+@utility brutal-shadow {
+  box-shadow: 4px 4px 0px var(--color-system-accent);
+}
+@utility brutal-shadow-error {
+  box-shadow: 4px 4px 0px var(--color-system-error);
+}
+@utility brutal-shadow-white {
+  box-shadow: 4px 4px 0px var(--color-system-fg);
+}
+@utility brutal-button {
+  @apply brutal-border brutal-shadow bg-system-bg text-system-fg px-4 py-2 font-bold uppercase tracking-wider transition-transform active:translate-x-1 active:translate-y-1 active:shadow-none hover:bg-system-fg hover:text-system-bg;
+}
+@utility brutal-input {
+  @apply brutal-border bg-system-bg text-system-fg px-4 py-2 font-mono focus:outline-none focus:border-system-accent focus:shadow-[4px_4px_0px_#3b82f6];
+}
+@utility brutal-panel {
+  @apply brutal-border brutal-shadow bg-system-bg p-6;
+}
