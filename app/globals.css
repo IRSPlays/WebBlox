@@ -1,38 +1,70 @@
 @import "tailwindcss";
 
 @theme {
-  --color-system-bg: #000000;
-  --color-system-fg: #ffffff;
-  --color-system-accent: #3b82f6;
-  --color-system-error: #ef4444;
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
-}
-
-@layer base {
-  body {
-    @apply bg-system-bg text-system-fg font-sans antialiased;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
 }
 
-@utility brutal-border {
-  @apply border-2 border-system-fg rounded-none;
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-glow: rgba(59, 130, 246, 0.4);
+  --grid-pattern: linear-gradient(to right, #1f2937 1px, transparent 1px),
+    linear-gradient(to bottom, #1f2937 1px, transparent 1px);
 }
-@utility brutal-shadow {
-  box-shadow: 4px 4px 0px var(--color-system-accent);
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  min-height: 100vh;
+  /* Add sleek ambient background grid */
+  background-image: 
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.15), transparent 40%),
+    var(--grid-pattern);
+  background-size: 100% 100%, 100% 100%, 40px 40px;
+  background-attachment: fixed;
 }
-@utility brutal-shadow-error {
-  box-shadow: 4px 4px 0px var(--color-system-error);
+
+/* Glassmorphism Classes */
+@layer components {
+  .glass-panel {
+    @apply bg-zinc-900/60 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:bg-zinc-800/80 hover:border-white/20 hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.1)] transition-all duration-300;
+  }
+  
+  .glass-button {
+    @apply relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-lg px-4 py-2 font-medium text-sm transition-all duration-300 hover:bg-white/10 hover:border-white/20 active:scale-95 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)];
+  }
+
+  .glass-button-primary {
+    @apply relative overflow-hidden bg-blue-500/20 text-blue-300 backdrop-blur-md border border-blue-500/40 rounded-lg px-4 py-2 font-medium text-sm transition-all duration-300 hover:bg-blue-500/30 hover:border-blue-500 hover:text-white hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] active:scale-95;
+  }
+  
+  .glass-input {
+    @apply bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-black/60 placeholder-white/30;
+  }
 }
-@utility brutal-shadow-white {
-  box-shadow: 4px 4px 0px var(--color-system-fg);
+
+/* Base custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-@utility brutal-button {
-  @apply brutal-border brutal-shadow bg-system-bg text-system-fg px-4 py-2 font-bold uppercase tracking-wider transition-transform active:translate-x-1 active:translate-y-1 active:shadow-none hover:bg-system-fg hover:text-system-bg;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-@utility brutal-input {
-  @apply brutal-border bg-system-bg text-system-fg px-4 py-2 font-mono focus:outline-none focus:border-system-accent focus:shadow-[4px_4px_0px_#3b82f6];
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
-@utility brutal-panel {
-  @apply brutal-border brutal-shadow bg-system-bg p-6;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

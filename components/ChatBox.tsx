@@ -3,23 +3,38 @@
 import { useState, useEffect, useRef } from 'react'
 import { getSocket } from './MultiplayerManager'
 
+interface ChatMessage {
+  id: string
+  username: string
+  message: string
+  type: 'user' | 'system' | 'command'
+  timestamp: number
+}
+
 export function ChatBox() {
-  const [messages, setMessages] = useState<{ id: string, username: string, message: string }[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
+  const [isOpen, setIsOpen] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let interval: NodeJS.Timeout
-    
+
     const setupSocket = () => {
       const socket = getSocket()
       if (!socket) return false
 
-      const handleMessage = (msg: { id: string, username: string, message: string }) => {
-        setMessages(prev => [...prev, msg])
-      }
+      // Load chat history from room snapshot
+      socket.on('room-snapshot', ({ chatHistory }: { chatHistory: ChatMessage[] }) => {
+        if (chatHistory && chatHistory.length > 0) {
+          setMessages(chatHistory)
+        }
+      })
 
-      socket.on('chat-message', handleMessage)
+      socket.on('chat-message', (msg: ChatMessage) => {
+        setMessages(prev => [...prev.slice(-99), msg]) // Keep last 100
+      })
+
       return true
     }
 
@@ -36,6 +51,7 @@ export function ChatBox() {
       const socket = getSocket()
       if (socket) {
         socket.off('chat-message')
+        socket.off('room-snapshot')
       }
     }
   }, [])
@@ -55,32 +71,50 @@ export function ChatBox() {
     }
   }
 
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
   return (
-    <div className="absolute bottom-4 left-4 z-10 w-80 min-w-[250px] min-h-[150px] max-w-[80vw] max-h-[80vh] bg-system-bg/90 brutal-border flex flex-col pointer-events-auto resize overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1 text-sm font-mono">
+    <div className={`absolute top-14 left-2 z-20 w-[30%] min-w-[300px] max-w-[400px] flex flex-col pointer-events-none transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      
+      {/* Messages Area */}
+      <div 
+        className="flex-1 overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-0.5 max-h-[250px] pointer-events-auto [text-shadow:_1px_1px_1px_rgba(0,0,0,0.8)] custom-scrollbar"
+        style={{ scrollBehavior: 'smooth' }}
+      >
+        {messages.length === 0 && (
+          <p className="text-white/50 text-[13px] font-sans italic py-2">Chat is ready.</p>
+        )}
         {messages.map((msg, i) => (
-          <div key={`${msg.id}-${i}`}>
-            <span className="text-system-accent font-bold">{msg.username}: </span>
-            <span className="text-system-fg">{msg.message}</span>
+          <div key={`${msg.id}-${i}`} className="flex gap-1.5 leading-relaxed bg-black/20 hover:bg-black/30 px-2 py-0.5 rounded transition-colors break-words">
+            {msg.type === 'system' ? (
+              <span className="text-red-400 font-bold text-[14px] font-sans [text-shadow:_1px_1px_0_rgba(0,0,0,1)]">
+                {msg.message}
+              </span>
+            ) : (
+              <span className="text-[14px] font-sans inline-block">
+                <span className="font-bold text-gray-200">[{msg.username}]: </span>
+                <span className="text-white ml-1">{msg.message}</span>
+              </span>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={sendMessage} className="flex border-t-2 border-system-fg shrink-0">
+
+      {/* Input Area */}
+      <form onSubmit={sendMessage} className="pointer-events-auto mt-1 mx-1 relative group">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Press Enter to chat..."
-          className="flex-1 bg-transparent p-2 text-system-fg font-mono focus:outline-none"
-          onKeyDown={(e) => {
-            // Stop propagation so it doesn't trigger movement
-            e.stopPropagation()
-          }}
+          placeholder="To chat click here or press / key"
+          className="w-full bg-black/40 hover:bg-black/60 focus:bg-black/80 backdrop-blur-md rounded border border-transparent focus:border-white/20 px-3 py-2 text-white font-sans text-[14px] transition-all duration-200 focus:outline-none placeholder:text-white/60 placeholder:font-medium shadow-sm custom-scrollbar"
+          onKeyDown={(e) => e.stopPropagation()}
         />
-        <button type="submit" className="bg-system-accent text-system-bg px-4 font-bold border-l-2 border-system-fg hover:bg-system-fg">
-          SEND
-        </button>
+        {/* We can hide the send button for genuine Roblox feel, users just hit Enter */}
       </form>
     </div>
   )

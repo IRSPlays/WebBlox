@@ -8,16 +8,48 @@ datasource db {
 }
 
 model User {
-  id            String  @id @default(uuid())
-  username      String  @unique
-  avatar_colors String  // JSON string or hex code
+  id            String    @id @default(uuid())
+  username      String    @unique
+  avatar_colors String    // JSON string of color array
+  createdAt     DateTime  @default(now())
   games         Game[]
+  messages      ChatMessage[]
+  sessions      PlayerSession[]
 }
 
 model Game {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   creatorId   String
   title       String
-  json_schema String   // JSON string of the world schema
-  creator     User     @relation(fields: [creatorId], references: [id])
+  description String    @default("")
+  json_schema String    // Full world JSON
+  thumbnail   String    @default("")
+  isPublished Boolean   @default(true)
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  creator     User      @relation(fields: [creatorId], references: [id])
+  messages    ChatMessage[]
+  sessions    PlayerSession[]
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  gameId    String
+  userId    String
+  content   String
+  type      String   @default("user")
+  createdAt DateTime @default(now())
+  game      Game     @relation(fields: [gameId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PlayerSession {
+  id        String    @id @default(uuid())
+  gameId    String
+  userId    String
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  game      Game      @relation(fields: [gameId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
 }
